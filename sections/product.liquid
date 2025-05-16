@@ -80,6 +80,17 @@
           "id": "min_quantity",
           "label": "Minimum quantity",
           "default": 1
+        },
+        {
+          "type": "select",
+          "id": "column_layout",
+          "label": "Column Layout",
+          "options": [
+            { "value": "full", "label": "Full Width" },
+            { "value": "left", "label": "Left Half (Pair with next 'Right Half')" },
+            { "value": "right", "label": "Right Half (Pair with previous 'Left Half')" }
+          ],
+          "default": "full"
         }
       ]
     },
@@ -99,6 +110,17 @@
           "id": "show_dynamic_checkout",
           "label": "Show dynamic checkout buttons (e.g., Buy it now, PayPal)",
           "default": true
+        },
+        {
+          "type": "select",
+          "id": "column_layout",
+          "label": "Column Layout",
+          "options": [
+            { "value": "full", "label": "Full Width" },
+            { "value": "left", "label": "Left Half (Pair with next 'Right Half')" },
+            { "value": "right", "label": "Right Half (Pair with previous 'Left Half')" }
+          ],
+          "default": "full"
         }
       ]
     }
