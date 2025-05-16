@@ -3,6 +3,12 @@
   "name": "Product",
   "settings": [
     {
+      "type": "product",
+      "id": "selected_product",
+      "label": "Choose product",
+      "info": "If no product is selected, the current product will be displayed"
+    },
+    {
       "type": "checkbox",
       "id": "show_quantity_selector",
       "label": "Show quantity selector",
@@ -51,42 +57,105 @@
           "default": "4.8"
         }
       ]
+    },
+    {
+      "type": "quantity_selector",
+      "name": "Quantity Selector",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "label",
+          "label": "Quantity label",
+          "default": "Quantity"
+        },
+        {
+          "type": "number",
+          "id": "default_quantity",
+          "label": "Default quantity",
+          "default": 1
+        },
+        {
+          "type": "number",
+          "id": "min_quantity",
+          "label": "Minimum quantity",
+          "default": 1
+        }
+      ]
+    },
+    {
+      "type": "buy_buttons",
+      "name": "Buy Buttons",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "add_to_cart_text",
+          "label": "Add to cart button text",
+          "default": "Add to Cart"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_dynamic_checkout",
+          "label": "Show dynamic checkout buttons (e.g., Buy it now, PayPal)",
+          "default": true
+        }
+      ]
     }
   ],
   "presets": [
     {
       "name": "Product",
-      "category": "Product"
+      "category": "Product",
+      "blocks": [
+        {
+          "type": "social_proof"
+        },
+        {
+          "type": "quantity_selector"
+        },
+        {
+          "type": "buy_buttons"
+        }
+      ]
     }
   ]
 }
 {% endschema %}
 
+{%- liquid
+  # Determine which product to display
+  assign current_product = product
+  if section.settings.selected_product != blank
+    assign current_product = all_products[section.settings.selected_product]
+  endif
+-%}
+
 <div class="product-section" data-section-id="{{ section.id }}" data-section-type="product">
   <div class="container mx-auto px-4 py-8">
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
       <!-- Product Images -->
-      <div class="product-images relative">
-        <div class="product-image-main bg-gray-50 rounded-lg overflow-hidden">
-          {%- if product.featured_image -%}
+      <div class="product-images relative md:col-span-4">
+        <div class="product-image-main bg-gray-50 rounded-lg overflow-hidden aspect-square">
+          {%- if current_product.featured_image -%}
             <img
-              src="{{ product.featured_image | img_url: 'large' }}"
-              alt="{{ product.featured_image.alt | escape }}"
-              class="w-full h-auto object-cover"
+              src="{{ current_product.featured_image | img_url: '800x' }}"
+              alt="{{ current_product.featured_image.alt | escape }}"
+              class="w-full h-full object-cover"
               id="ProductPhotoImg"
-              data-zoom-image="{{ product.featured_image | img_url: '1500x' }}"
+              data-zoom-image="{{ current_product.featured_image | img_url: '1500x' }}"
             >
           {%- endif -%}
         </div>
         
-        {%- if product.images.size > 1 -%}
+        {%- if current_product.images.size > 1 -%}
           <div class="product-image-thumbs grid grid-cols-5 gap-2 mt-4">
-            {%- for image in product.images -%}
-              <button class="thumbnail-item bg-gray-50 rounded-md overflow-hidden border-2 {% if forloop.first %}border-blue-500{% else %}border-transparent{% endif %}" data-image-id="{{ image.id }}">
+            {%- for image in current_product.images -%}
+              <button class="thumbnail-item bg-gray-50 rounded-md overflow-hidden border-2 aspect-square {% if forloop.first %}border-blue-500{% else %}border-transparent{% endif %}" data-image-id="{{ image.id }}">
                 <img
-                  src="{{ image | img_url: 'compact' }}"
+                  src="{{ image | img_url: '150x' }}"
                   alt="{{ image.alt | escape }}"
-                  class="w-full h-auto object-cover"
+                  class="w-full h-full object-cover"
                 >
               </button>
             {%- endfor -%}
@@ -95,8 +164,8 @@
       </div>
 
       <!-- Product Info -->
-      <div class="product-info">
-        <h1 class="text-3xl font-bold mb-2">{{ product.title }}</h1>
+      <div class="product-info md:col-span-8">
+        <h1 class="text-3xl font-bold mb-2">{{ current_product.title }}</h1>
         
         <!-- Social Proof -->
         {%- for block in section.blocks -%}
@@ -111,25 +180,25 @@
         <!-- Price -->
         <div class="price-container mb-6">
           <span class="text-2xl font-bold" data-product-price>
-            {{ product.selected_or_first_available_variant.price | money }}
+            {{ current_product.selected_or_first_available_variant.price | money }}
           </span>
-          {%- if product.compare_at_price_max > product.price -%}
+          {%- if current_product.compare_at_price_max > current_product.price -%}
             <span class="ml-2 text-gray-500 line-through">
-              {{ product.compare_at_price_max | money }}
+              {{ current_product.compare_at_price_max | money }}
             </span>
             <span class="ml-2 text-red-500">
-              Save {{ product.compare_at_price_max | minus: product.price | money }}
+              Save {{ current_product.compare_at_price_max | minus: current_product.price | money }}
             </span>
           {%- endif -%}
         </div>
 
-        {%- form 'product', product -%}
-          <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+        {%- form 'product', current_product -%}
+          <input type="hidden" name="id" value="{{ current_product.selected_or_first_available_variant.id }}">
 
           <!-- Variant Selector -->
-          {%- if product.has_only_default_variant == false and section.settings.show_variant_labels -%}
+          {%- if current_product.has_only_default_variant == false and section.settings.show_variant_labels -%}
             <div class="variant-selectors mb-6">
-              {%- for option in product.options_with_values -%}
+              {%- for option in current_product.options_with_values -%}
                 <div class="variant-selector mb-4">
                   <label class="block text-sm font-medium mb-2">{{ option.name }}</label>
                   <div class="grid grid-cols-4 gap-2">
@@ -149,60 +218,74 @@
             </div>
           {%- endif -%}
 
-          <!-- Quantity Selector -->
-          {%- if section.settings.show_quantity_selector -%}
-            <div class="quantity-selector mb-6">
-              <label class="block text-sm font-medium mb-2">Quantity</label>
-              <div class="flex items-center border rounded-md w-32">
-                <button type="button" class="quantity-button minus px-3 py-2 text-gray-600">−</button>
-                <input type="number" name="quantity" class="quantity-input w-full text-center border-x" value="1" min="1">
-                <button type="button" class="quantity-button plus px-3 py-2 text-gray-600">+</button>
-              </div>
-            </div>
-          {%- endif -%}
+          <!-- Blocks: Quantity Selector & Buy Buttons -->
+          {%- for block in section.blocks -%}
+            {%- case block.type -%}
+              {%- when 'quantity_selector' -%}
+                <div class="quantity-selector mb-6" {{ block.shopify_attributes }}>
+                  <label class="block text-sm font-medium mb-2">{{ block.settings.label }}</label>
+                  <div class="flex items-center border rounded-md w-32">
+                    <button type="button" class="quantity-button minus px-3 py-2 text-gray-600">−</button>
+                    <input 
+                      type="number" 
+                      name="quantity" 
+                      class="quantity-input w-full text-center border-x" 
+                      value="{{ block.settings.default_quantity }}" 
+                      min="{{ block.settings.min_quantity }}"
+                      data-min-quantity="{{ block.settings.min_quantity }}"
+                    >
+                    <button type="button" class="quantity-button plus px-3 py-2 text-gray-600">+</button>
+                  </div>
+                </div>
+              {%- when 'buy_buttons' -%}
+                <div class="buy-buttons-block mb-4" {{ block.shopify_attributes }}>
+                  <button
+                    type="submit"
+                    name="add"
+                    class="add-to-cart w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md mb-2 flex items-center justify-center"
+                    {% unless current_product.available %}disabled{% endunless %}
+                  >
+                    {%- if current_product.available -%}
+                      <span class="add-to-cart-text">{{ block.settings.add_to_cart_text }}</span>
+                    {%- else -%}
+                      <span class="sold-out-text">Sold Out</span>
+                    {%- endif -%}
+                  </button>
+                  {%- if block.settings.show_dynamic_checkout -%}
+                    {{ form | payment_button }}
+                  {%- endif -%}
+                </div>
+            {%- endcase -%}
+          {%- endfor -%}
 
-          <!-- Add to Cart Button -->
-          <button
-            type="submit"
-            name="add"
-            class="add-to-cart w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md mb-4 flex items-center justify-center"
-            {% unless product.available %}disabled{% endunless %}
-          >
-            {%- if product.available -%}
-              <span class="add-to-cart-text">Add to Cart</span>
-            {%- else -%}
-              <span class="sold-out-text">Sold Out</span>
-            {%- endif -%}
-          </button>
-        {%- endform -%}
-
-        <!-- Trust Badge -->
-        <div class="trust-badge text-center text-gray-600 mb-6">
-          {{ section.settings.trust_badge_text }}
-        </div>
-
-        <!-- Inventory Notice -->
-        {%- if section.settings.show_inventory_notice and product.available -%}
-          {%- assign inventory = product.selected_or_first_available_variant.inventory_quantity -%}
-          {%- if inventory <= 10 and inventory > 0 -%}
-            <div class="inventory-notice text-red-500 text-sm mb-4">
-              Only {{ inventory }} left in stock - order soon
-            </div>
-          {%- endif -%}
-        {%- endif -%}
-
-        <!-- Shipping Estimate -->
-        {%- if section.settings.show_shipping_estimate -%}
-          <div class="shipping-estimate text-sm text-gray-600 mb-4">
-            <span class="icon">🚚</span>
-            Free shipping • Estimated delivery: 2-4 business days
+          <!-- Trust Badge -->
+          <div class="trust-badge text-center text-gray-600 mb-6">
+            {{ section.settings.trust_badge_text }}
           </div>
-        {%- endif -%}
 
-        <!-- Product Description -->
-        <div class="product-description prose max-w-none mt-8">
-          {{ product.description }}
-        </div>
+          <!-- Inventory Notice -->
+          {%- if section.settings.show_inventory_notice and current_product.available -%}
+            {%- assign inventory = current_product.selected_or_first_available_variant.inventory_quantity -%}
+            {%- if inventory <= 10 and inventory > 0 -%}
+              <div class="inventory-notice text-red-500 text-sm mb-4">
+                Only {{ inventory }} left in stock - order soon
+              </div>
+            {%- endif -%}
+          {%- endif -%}
+
+          <!-- Shipping Estimate -->
+          {%- if section.settings.show_shipping_estimate -%}
+            <div class="shipping-estimate text-sm text-gray-600 mb-4">
+              <span class="icon">🚚</span>
+              Free shipping • Estimated delivery: 2-4 business days
+            </div>
+          {%- endif -%}
+
+          <!-- Product Description -->
+          <div class="product-description prose max-w-none mt-8">
+            {{ current_product.description }}
+          </div>
+        {%- endform -%}
       </div>
     </div>
   </div>
@@ -228,25 +311,39 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // Quantity selector
-  const quantityInput = document.querySelector('.quantity-input');
-  document.querySelector('.quantity-button.minus').addEventListener('click', () => {
-    const currentValue = parseInt(quantityInput.value);
-    if (currentValue > 1) {
-      quantityInput.value = currentValue - 1;
-    }
-  });
-  
-  document.querySelector('.quantity-button.plus').addEventListener('click', () => {
-    const currentValue = parseInt(quantityInput.value);
-    quantityInput.value = currentValue + 1;
+  const quantityInputs = document.querySelectorAll('.quantity-input');
+  quantityInputs.forEach(quantityInput => {
+    const minQuantity = parseInt(quantityInput.dataset.minQuantity) || 1;
+    const minusButton = quantityInput.parentElement.querySelector('.minus');
+    const plusButton = quantityInput.parentElement.querySelector('.plus');
+
+    minusButton.addEventListener('click', () => {
+      const currentValue = parseInt(quantityInput.value);
+      if (currentValue > minQuantity) {
+        quantityInput.value = currentValue - 1;
+      }
+    });
+    
+    plusButton.addEventListener('click', () => {
+      const currentValue = parseInt(quantityInput.value);
+      quantityInput.value = currentValue + 1;
+    });
+
+    // Ensure minimum quantity
+    quantityInput.addEventListener('change', () => {
+      const currentValue = parseInt(quantityInput.value);
+      if (currentValue < minQuantity) {
+        quantityInput.value = minQuantity;
+      }
+    });
   });
 
   // Variant selection
   const variantButtons = document.querySelectorAll('.variant-button');
   const variantIdInput = document.querySelector('input[name="id"]');
-  const variants = {{ product.variants | json }};
-  const options = {{ product.options_with_values | json }};
-  let currentVariant = {{ product.selected_or_first_available_variant | json }};
+  const variants = {{ current_product.variants | json }};
+  const options = {{ current_product.options_with_values | json }};
+  let currentVariant = {{ current_product.selected_or_first_available_variant | json }};
   
   function updateVariantId(selectedOptions) {
     const matchedVariant = variants.find(variant => {
@@ -303,16 +400,16 @@ document.addEventListener('DOMContentLoaded', function() {
 {% stylesheet %}
 .product-image-main {
   position: relative;
-  padding-top: 100%;
 }
 
 .product-image-main img {
-  position: absolute;
-  top: 0;
-  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.aspect-square {
+  aspect-ratio: 1 / 1;
 }
 
 .thumbnail-item {
