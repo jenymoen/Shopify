@@ -1,0 +1,18 @@
+{
+  "name": "advanced-shopify-theme",
+  "version": "1.0.0",
+  "description": "A modern, customizable Shopify theme",
+  "private": true,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "shopify theme serve",
+    "deploy": "shopify theme push"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "@shopify/cli": "latest",
+    "@shopify/theme": "latest"
+  }
+} 

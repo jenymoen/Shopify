@@ -1,0 +1,75 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "Advanced Shopify Theme",
+    "theme_version": "1.0.0",
+    "theme_author": "Your Store",
+    "theme_documentation_url": "",
+    "theme_support_url": ""
+  },
+  {
+    "name": "Colors",
+    "settings": [
+      {
+        "type": "color",
+        "id": "primary_color",
+        "label": "Primary Color",
+        "default": "#000000"
+      },
+      {
+        "type": "color",
+        "id": "secondary_color",
+        "label": "Secondary Color",
+        "default": "#ffffff"
+      },
+      {
+        "type": "color",
+        "id": "accent_color",
+        "label": "Accent Color",
+        "default": "#007ace"
+      }
+    ]
+  },
+  {
+    "name": "Typography",
+    "settings": [
+      {
+        "type": "font_picker",
+        "id": "heading_font",
+        "label": "Headings",
+        "default": "helvetica_n4"
+      },
+      {
+        "type": "font_picker",
+        "id": "body_font",
+        "label": "Body text",
+        "default": "helvetica_n4"
+      }
+    ]
+  },
+  {
+    "name": "Layout",
+    "settings": [
+      {
+        "type": "select",
+        "id": "container_width",
+        "label": "Container Width",
+        "options": [
+          {
+            "value": "1200px",
+            "label": "Default (1200px)"
+          },
+          {
+            "value": "1400px",
+            "label": "Wide (1400px)"
+          },
+          {
+            "value": "1600px",
+            "label": "Extra Wide (1600px)"
+          }
+        ],
+        "default": "1200px"
+      }
+    ]
+  }
+] 

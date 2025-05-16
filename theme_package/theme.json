@@ -1,0 +1,26 @@
+{
+  "name": "Advanced Shopify Theme",
+  "version": "1.0.0",
+  "settings_schema": {
+    "header": {
+      "type": "header",
+      "content": "Theme Settings"
+    },
+    "sections": {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        {
+          "value": "boxed",
+          "label": "Boxed"
+        },
+        {
+          "value": "full-width",
+          "label": "Full Width"
+        }
+      ],
+      "default": "full-width"
+    }
+  }
+} 

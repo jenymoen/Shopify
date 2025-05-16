@@ -1,0 +1,30 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "settings": {
+        "height": "large",
+        "heading": "Welcome to our store",
+        "text": "<p>Shop our latest collection of premium products.</p>",
+        "button_label": "Shop Now",
+        "button_link": "/collections/all",
+        "text_alignment": "center",
+        "overlay_opacity": 30
+      }
+    },
+    "featured_collection": {
+      "type": "featured-collection",
+      "settings": {
+        "collection": "frontpage",
+        "title": "Featured Products",
+        "products_per_row": "3",
+        "products_limit": 6,
+        "show_price": true
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "featured_collection"
+  ]
+} 

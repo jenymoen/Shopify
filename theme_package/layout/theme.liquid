@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="{{ request.locale.iso_code }}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  
+  <title>{{ page_title | escape }}{% if current_tags %} - tagged "{{ current_tags | join: ', ' }}"{% endif %}{% if current_page != 1 %} - Page {{ current_page }}{% endif %}{% unless page_title contains shop.name %} - {{ shop.name }}{% endunless %}</title>
+  
+  {% if page_description %}
+    <meta name="description" content="{{ page_description | escape }}">
+  {% endif %}
+  
+  {{ 'theme.css' | asset_url | stylesheet_tag }}
+  {{ 'custom.css' | asset_url | stylesheet_tag }}
+  
+  <script src="{{ 'theme.js' | asset_url }}" defer></script>
+  
+  {{ content_for_header }}
+  
+  <style>
+    :root {
+      --primary-color: {{ settings.primary_color }};
+      --secondary-color: {{ settings.secondary_color }};
+      --accent-color: {{ settings.accent_color }};
+      --heading-font: {{ settings.heading_font.family }};
+      --body-font: {{ settings.body_font.family }};
+    }
+    
+    body {
+      font-family: var(--body-font);
+      margin: 0;
+      padding: 0;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--heading-font);
+    }
+    
+    .container-1200px {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    .container-1400px {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+    
+    .container-1600px {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 0 1rem;
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-to-content-link button visually-hidden" href="#MainContent">
+    {{ "accessibility.skip_to_text" | t }}
+  </a>
+
+  {% section 'header' %}
+  
+  <main role="main" id="MainContent">
+    {{ content_for_layout }}
+  </main>
+
+  {% section 'footer' %}
+  
+  <script>
+    // Add to cart functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const addToCartForms = document.querySelectorAll('form[action="/cart/add"]');
+      
+      addToCartForms.forEach(form => {
+        form.addEventListener('submit', async function(e) {
+          e.preventDefault();
+          
+          try {
+            const formData = new FormData(form);
+            const response = await fetch('/cart/add.js', {
+              method: 'POST',
+              body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+              // Update cart count and show success message
+              updateCartCount();
+              showNotification('Product added to cart!', 'success');
+            } else {
+              showNotification('Error adding product to cart', 'error');
+            }
+          } catch (error) {
+            console.error('Error:', error);
+            showNotification('Error adding product to cart', 'error');
+          }
+        });
+      });
+    });
+
+    // Update cart count
+    async function updateCartCount() {
+      try {
+        const response = await fetch('/cart.js');
+        const cart = await response.json();
+        const cartCount = cart.item_count;
+        
+        document.querySelectorAll('.cart-count').forEach(el => {
+          el.textContent = cartCount;
+        });
+      } catch (error) {
+        console.error('Error updating cart count:', error);
+      }
+    }
+
+    // Show notification
+    function showNotification(message, type) {
+      const notification = document.createElement('div');
+      notification.className = `notification notification--${type}`;
+      notification.textContent = message;
+      
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
+    }
+  </script>
+
+  {{ 'custom.js' | asset_url | script_tag }}
+</body>
+</html> 

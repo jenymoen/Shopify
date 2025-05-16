@@ -1,0 +1,24 @@
+# Development
+.git
+.gitignore
+node_modules
+package.json
+package-lock.json
+yarn.lock
+.env
+.env.*
+
+# Documentation
+README.md
+CHANGELOG.md
+LICENSE.md
+*.md
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db 
