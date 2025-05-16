@@ -1,0 +1,315 @@
+{% schema %}
+{
+  "name": "Product",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_quantity_selector",
+      "label": "Show quantity selector",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_variant_labels",
+      "label": "Show variant labels",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_shipping_estimate",
+      "label": "Show shipping estimate",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_inventory_notice",
+      "label": "Show inventory notice",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "trust_badge_text",
+      "label": "Trust badge text",
+      "default": "🔒 Secure checkout • Money-back guarantee"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "social_proof",
+      "name": "Social Proof",
+      "settings": [
+        {
+          "type": "text",
+          "id": "review_count",
+          "label": "Review count",
+          "default": "1000+"
+        },
+        {
+          "type": "text",
+          "id": "average_rating",
+          "label": "Average rating",
+          "default": "4.8"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Product",
+      "category": "Product"
+    }
+  ]
+}
+{% endschema %}
+
+<div class="product-section" data-section-id="{{ section.id }}" data-section-type="product">
+  <div class="container mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <!-- Product Images -->
+      <div class="product-images relative">
+        <div class="product-image-main bg-gray-50 rounded-lg overflow-hidden">
+          {%- if product.featured_image -%}
+            <img
+              src="{{ product.featured_image | img_url: 'large' }}"
+              alt="{{ product.featured_image.alt | escape }}"
+              class="w-full h-auto object-cover"
+              id="ProductPhotoImg"
+              data-zoom-image="{{ product.featured_image | img_url: '1500x' }}"
+            >
+          {%- endif -%}
+        </div>
+        
+        {%- if product.images.size > 1 -%}
+          <div class="product-image-thumbs grid grid-cols-5 gap-2 mt-4">
+            {%- for image in product.images -%}
+              <button class="thumbnail-item bg-gray-50 rounded-md overflow-hidden border-2 {% if forloop.first %}border-blue-500{% else %}border-transparent{% endif %}" data-image-id="{{ image.id }}">
+                <img
+                  src="{{ image | img_url: 'compact' }}"
+                  alt="{{ image.alt | escape }}"
+                  class="w-full h-auto object-cover"
+                >
+              </button>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      <!-- Product Info -->
+      <div class="product-info">
+        <h1 class="text-3xl font-bold mb-2">{{ product.title }}</h1>
+        
+        <!-- Social Proof -->
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'social_proof' -%}
+            <div class="social-proof flex items-center mb-4">
+              <div class="stars text-yellow-400">★★★★★</div>
+              <span class="ml-2 text-gray-600">{{ block.settings.average_rating }} ({{ block.settings.review_count }} reviews)</span>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+
+        <!-- Price -->
+        <div class="price-container mb-6">
+          <span class="text-2xl font-bold" data-product-price>
+            {{ product.selected_or_first_available_variant.price | money }}
+          </span>
+          {%- if product.compare_at_price_max > product.price -%}
+            <span class="ml-2 text-gray-500 line-through">
+              {{ product.compare_at_price_max | money }}
+            </span>
+            <span class="ml-2 text-red-500">
+              Save {{ product.compare_at_price_max | minus: product.price | money }}
+            </span>
+          {%- endif -%}
+        </div>
+
+        <!-- Variant Selector -->
+        {%- if product.has_only_default_variant == false and section.settings.show_variant_labels -%}
+          <div class="variant-selectors mb-6">
+            {%- for option in product.options_with_values -%}
+              <div class="variant-selector mb-4">
+                <label class="block text-sm font-medium mb-2">{{ option.name }}</label>
+                <div class="grid grid-cols-4 gap-2">
+                  {%- for value in option.values -%}
+                    <button
+                      class="variant-button px-4 py-2 border-2 rounded-md {% if option.selected_value == value %}border-blue-500 bg-blue-50{% else %}border-gray-200{% endif %}"
+                      data-option-position="{{ forloop.index0 }}"
+                      data-value="{{ value | escape }}"
+                    >
+                      {{ value }}
+                    </button>
+                  {%- endfor -%}
+                </div>
+              </div>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+
+        <!-- Quantity Selector -->
+        {%- if section.settings.show_quantity_selector -%}
+          <div class="quantity-selector mb-6">
+            <label class="block text-sm font-medium mb-2">Quantity</label>
+            <div class="flex items-center border rounded-md w-32">
+              <button class="quantity-button minus px-3 py-2 text-gray-600">−</button>
+              <input type="number" class="quantity-input w-full text-center border-x" value="1" min="1">
+              <button class="quantity-button plus px-3 py-2 text-gray-600">+</button>
+            </div>
+          </div>
+        {%- endif -%}
+
+        <!-- Add to Cart Button -->
+        <button
+          type="submit"
+          name="add"
+          class="add-to-cart w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md mb-4 flex items-center justify-center"
+          data-product-id="{{ product.id }}"
+          {% unless product.available %}disabled{% endunless %}
+        >
+          {%- if product.available -%}
+            <span class="add-to-cart-text">Add to Cart</span>
+          {%- else -%}
+            <span class="sold-out-text">Sold Out</span>
+          {%- endif -%}
+        </button>
+
+        <!-- Trust Badge -->
+        <div class="trust-badge text-center text-gray-600 mb-6">
+          {{ section.settings.trust_badge_text }}
+        </div>
+
+        <!-- Inventory Notice -->
+        {%- if section.settings.show_inventory_notice and product.available -%}
+          {%- assign inventory = product.selected_or_first_available_variant.inventory_quantity -%}
+          {%- if inventory <= 10 and inventory > 0 -%}
+            <div class="inventory-notice text-red-500 text-sm mb-4">
+              Only {{ inventory }} left in stock - order soon
+            </div>
+          {%- endif -%}
+        {%- endif -%}
+
+        <!-- Shipping Estimate -->
+        {%- if section.settings.show_shipping_estimate -%}
+          <div class="shipping-estimate text-sm text-gray-600 mb-4">
+            <span class="icon">🚚</span>
+            Free shipping • Estimated delivery: 2-4 business days
+          </div>
+        {%- endif -%}
+
+        <!-- Product Description -->
+        <div class="product-description prose max-w-none mt-8">
+          {{ product.description }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% javascript %}
+document.addEventListener('DOMContentLoaded', function() {
+  // Thumbnail click handling
+  const thumbnails = document.querySelectorAll('.thumbnail-item');
+  thumbnails.forEach(thumb => {
+    thumb.addEventListener('click', function() {
+      // Update main image
+      const mainImage = document.querySelector('#ProductPhotoImg');
+      const newSrc = this.querySelector('img').src.replace('compact', 'large');
+      mainImage.src = newSrc;
+      
+      // Update active state
+      thumbnails.forEach(t => t.classList.remove('border-blue-500'));
+      this.classList.add('border-blue-500');
+    });
+  });
+
+  // Quantity selector
+  const quantityInput = document.querySelector('.quantity-input');
+  document.querySelector('.quantity-button.minus').addEventListener('click', () => {
+    const currentValue = parseInt(quantityInput.value);
+    if (currentValue > 1) {
+      quantityInput.value = currentValue - 1;
+    }
+  });
+  
+  document.querySelector('.quantity-button.plus').addEventListener('click', () => {
+    const currentValue = parseInt(quantityInput.value);
+    quantityInput.value = currentValue + 1;
+  });
+
+  // Variant selection
+  const variantButtons = document.querySelectorAll('.variant-button');
+  variantButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const position = this.dataset.optionPosition;
+      const value = this.dataset.value;
+      
+      // Update active state
+      const siblings = document.querySelectorAll(`[data-option-position="${position}"]`);
+      siblings.forEach(sib => sib.classList.remove('border-blue-500', 'bg-blue-50'));
+      this.classList.add('border-blue-500', 'bg-blue-50');
+    });
+  });
+});
+{% endjavascript %}
+
+{% stylesheet %}
+.product-image-main {
+  position: relative;
+  padding-top: 100%;
+}
+
+.product-image-main img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnail-item {
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.thumbnail-item:hover {
+  border-color: #93C5FD;
+}
+
+.variant-button {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.variant-button:hover {
+  border-color: #93C5FD;
+  background-color: #EFF6FF;
+}
+
+.quantity-input {
+  -moz-appearance: textfield;
+}
+
+.quantity-input::-webkit-outer-spin-button,
+.quantity-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.quantity-button {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.quantity-button:hover {
+  background-color: #F3F4F6;
+}
+
+.add-to-cart {
+  transition: background-color 0.2s ease;
+}
+
+.add-to-cart:disabled {
+  background-color: #9CA3AF;
+  cursor: not-allowed;
+}
+{% endstylesheet %} 
