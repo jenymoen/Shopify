@@ -1,0 +1,10 @@
+{
+  "product": {
+    "name": "Product Page",
+    "templates": {
+      "default": {
+        "name": "Default Product"
+      }
+    }
+  }
+} 

@@ -1,0 +1,25 @@
+{
+  "sections": {
+    "main": {
+      "type": "product",
+      "settings": {
+        "show_quantity_selector": true,
+        "show_variant_labels": true,
+        "show_shipping_estimate": true,
+        "show_inventory_notice": true,
+        "trust_badge_text": "🔒 Secure checkout • Money-back guarantee"
+      },
+      "blocks": {
+        "social_proof": {
+          "type": "social_proof",
+          "settings": {
+            "review_count": "1000+",
+            "average_rating": "4.8"
+          }
+        }
+      },
+      "block_order": ["social_proof"]
+    }
+  },
+  "order": ["main"]
+} 

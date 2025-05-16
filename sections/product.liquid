@@ -123,54 +123,58 @@
           {%- endif -%}
         </div>
 
-        <!-- Variant Selector -->
-        {%- if product.has_only_default_variant == false and section.settings.show_variant_labels -%}
-          <div class="variant-selectors mb-6">
-            {%- for option in product.options_with_values -%}
-              <div class="variant-selector mb-4">
-                <label class="block text-sm font-medium mb-2">{{ option.name }}</label>
-                <div class="grid grid-cols-4 gap-2">
-                  {%- for value in option.values -%}
-                    <button
-                      class="variant-button px-4 py-2 border-2 rounded-md {% if option.selected_value == value %}border-blue-500 bg-blue-50{% else %}border-gray-200{% endif %}"
-                      data-option-position="{{ forloop.index0 }}"
-                      data-value="{{ value | escape }}"
-                    >
-                      {{ value }}
-                    </button>
-                  {%- endfor -%}
+        {%- form 'product', product -%}
+          <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+
+          <!-- Variant Selector -->
+          {%- if product.has_only_default_variant == false and section.settings.show_variant_labels -%}
+            <div class="variant-selectors mb-6">
+              {%- for option in product.options_with_values -%}
+                <div class="variant-selector mb-4">
+                  <label class="block text-sm font-medium mb-2">{{ option.name }}</label>
+                  <div class="grid grid-cols-4 gap-2">
+                    {%- for value in option.values -%}
+                      <button
+                        type="button"
+                        class="variant-button px-4 py-2 border-2 rounded-md {% if option.selected_value == value %}border-blue-500 bg-blue-50{% else %}border-gray-200{% endif %}"
+                        data-option-position="{{ forloop.index0 }}"
+                        data-value="{{ value | escape }}"
+                      >
+                        {{ value }}
+                      </button>
+                    {%- endfor -%}
+                  </div>
                 </div>
-              </div>
-            {%- endfor -%}
-          </div>
-        {%- endif -%}
-
-        <!-- Quantity Selector -->
-        {%- if section.settings.show_quantity_selector -%}
-          <div class="quantity-selector mb-6">
-            <label class="block text-sm font-medium mb-2">Quantity</label>
-            <div class="flex items-center border rounded-md w-32">
-              <button class="quantity-button minus px-3 py-2 text-gray-600">−</button>
-              <input type="number" class="quantity-input w-full text-center border-x" value="1" min="1">
-              <button class="quantity-button plus px-3 py-2 text-gray-600">+</button>
+              {%- endfor -%}
             </div>
-          </div>
-        {%- endif -%}
-
-        <!-- Add to Cart Button -->
-        <button
-          type="submit"
-          name="add"
-          class="add-to-cart w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md mb-4 flex items-center justify-center"
-          data-product-id="{{ product.id }}"
-          {% unless product.available %}disabled{% endunless %}
-        >
-          {%- if product.available -%}
-            <span class="add-to-cart-text">Add to Cart</span>
-          {%- else -%}
-            <span class="sold-out-text">Sold Out</span>
           {%- endif -%}
-        </button>
+
+          <!-- Quantity Selector -->
+          {%- if section.settings.show_quantity_selector -%}
+            <div class="quantity-selector mb-6">
+              <label class="block text-sm font-medium mb-2">Quantity</label>
+              <div class="flex items-center border rounded-md w-32">
+                <button type="button" class="quantity-button minus px-3 py-2 text-gray-600">−</button>
+                <input type="number" name="quantity" class="quantity-input w-full text-center border-x" value="1" min="1">
+                <button type="button" class="quantity-button plus px-3 py-2 text-gray-600">+</button>
+              </div>
+            </div>
+          {%- endif -%}
+
+          <!-- Add to Cart Button -->
+          <button
+            type="submit"
+            name="add"
+            class="add-to-cart w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-md mb-4 flex items-center justify-center"
+            {% unless product.available %}disabled{% endunless %}
+          >
+            {%- if product.available -%}
+              <span class="add-to-cart-text">Add to Cart</span>
+            {%- else -%}
+              <span class="sold-out-text">Sold Out</span>
+            {%- endif -%}
+          </button>
+        {%- endform -%}
 
         <!-- Trust Badge -->
         <div class="trust-badge text-center text-gray-600 mb-6">
@@ -206,6 +210,8 @@
 
 {% javascript %}
 document.addEventListener('DOMContentLoaded', function() {
+  const productSection = document.querySelector('.product-section');
+  
   // Thumbnail click handling
   const thumbnails = document.querySelectorAll('.thumbnail-item');
   thumbnails.forEach(thumb => {
@@ -237,15 +243,58 @@ document.addEventListener('DOMContentLoaded', function() {
 
   // Variant selection
   const variantButtons = document.querySelectorAll('.variant-button');
+  const variantIdInput = document.querySelector('input[name="id"]');
+  const variants = {{ product.variants | json }};
+  const options = {{ product.options_with_values | json }};
+  let currentVariant = {{ product.selected_or_first_available_variant | json }};
+  
+  function updateVariantId(selectedOptions) {
+    const matchedVariant = variants.find(variant => {
+      return options.every((option, index) => {
+        return variant[`option${index + 1}`] === selectedOptions[index];
+      });
+    });
+    
+    if (matchedVariant) {
+      variantIdInput.value = matchedVariant.id;
+      currentVariant = matchedVariant;
+      
+      // Update price
+      const priceElement = document.querySelector('[data-product-price]');
+      if (priceElement) {
+        priceElement.textContent = Shopify.formatMoney(matchedVariant.price);
+      }
+      
+      // Update availability
+      const addToCartButton = document.querySelector('.add-to-cart');
+      const addToCartText = addToCartButton.querySelector('span');
+      if (matchedVariant.available) {
+        addToCartButton.disabled = false;
+        addToCartText.textContent = 'Add to Cart';
+      } else {
+        addToCartButton.disabled = true;
+        addToCartText.textContent = 'Sold Out';
+      }
+    }
+  }
+  
   variantButtons.forEach(button => {
     button.addEventListener('click', function() {
-      const position = this.dataset.optionPosition;
+      const position = parseInt(this.dataset.optionPosition);
       const value = this.dataset.value;
       
       // Update active state
       const siblings = document.querySelectorAll(`[data-option-position="${position}"]`);
       siblings.forEach(sib => sib.classList.remove('border-blue-500', 'bg-blue-50'));
       this.classList.add('border-blue-500', 'bg-blue-50');
+      
+      // Get all selected options
+      const selectedOptions = Array.from(options).map((option, index) => {
+        const selectedButton = document.querySelector(`.variant-button[data-option-position="${index}"].border-blue-500`);
+        return selectedButton ? selectedButton.dataset.value : option.values[0];
+      });
+      
+      updateVariantId(selectedOptions);
     });
   });
 });
@@ -312,6 +361,4 @@ document.addEventListener('DOMContentLoaded', function() {
   background-color: #9CA3AF;
   cursor: not-allowed;
 }
-{% endstylesheet %}
-
-{% section 'product' %} 
+{% endstylesheet %} 
